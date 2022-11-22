@@ -1,101 +1,147 @@
-#  -*- coding: utf-8 -*-
-from behave import *
-from chess import Chess, BoardState, PiecesSet, Rules
+# Feature: Rules of chess
+#   In order to play chess
+#   As a chess player
+#   I want to be able to move pieces on a chess board with victory conditions
 
-# 8 ║♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜
-# 7 ║♟ ♟ ♟ ♟ ♟ ♟ ♟ ♟
-# 6 ║… … … … … … … …
-# 5 ║… … … … … … … …
-# 4 ║… … … … … … … …
-# 3 ║… … … … … … … …
-# 2 ║♙ ♙ ♙ ♙ ♙ ♙ ♙ ♙
-# 1 ║♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖
-#  —╚═══════════════
-#  ——a b c d e f g h
+#   @wip
+#   Scenario: Starting the game
+#     Given you are starting a game of chess
+#     When you start a game
+#     Then the board exists
+#     And it is the correct size
+#     And there is the correct number of pieces
+#     And the score is set to zero
 
-@given(u'you are starting a game of chess')
+#   @wip
+#   Scenario: Setting up the board
+#     Given that you have a set of pieces
+#     When the game is about to start
+#     Then all of the pieces are put in their correct places
+#     And none of the pieces are in wrong places
+
+#   Scenario: Moving a piece
+#     Given a piece is on the board
+#     When you move it to a valid position
+#     Then it changes positions
+#     And your turn ends
+
+#   Scenario: Taking a piece
+#     Given two pieces
+#     When one piece takes another
+#     Then the defender's space is occupied by the attacker
+#     And the defending piece is removed from play
+#     And your turn ends
+
+from behave import given, when, then
+from chess import Chess, BoardState, Rules, PiecesSet
+from hamcrest import *
+
+@given('you are starting a game of chess')
 def step_impl(context):
-    context.chess = Chess()
+    context.game = Chess()
 
-@when(u'you start a game')
+@when('you start a game')
 def step_impl(context):
-    context.chess.start_new_game()
-    assert context.chess.game_active == True
+    context.game.start_new_game()
 
-@then(u'the board exists')
+@then('the board exists')
 def step_impl(context):
-    assert context.chess.board is not None
+    assert_that(context.game.board, is_not(None))
 
-@then(u'it is the correct size')
+@then('it is the correct size')
 def step_impl(context):
-    assert len(context.chess.board) == 8
-    for board_row in context.chess.board:
-        assert len(board_row) == 8
+    assert_that(context.game.board, has_length(8))
+    for row in context.game.board:
+        assert_that(row, has_length(8))
 
-@then(u'there is the correct number of pieces')
+@then('there is the correct number of pieces')
 def step_impl(context):
-    rules = context.chess.Rules
-    expected_pieces = [8, 2, 2, 2, 1, 1]
-    for piece in rules.list_of_pieces:
-        for number in expected_pieces:
-            pass
+    assert_that(context.game.board_state.number_of_pieces("Pawns"), equal_to(8))
+    assert_that(context.game.board_state.number_of_pieces("Rooks"), equal_to(2))
+    assert_that(context.game.board_state.number_of_pieces("Knights"), equal_to(2))
+    assert_that(context.game.board_state.number_of_pieces("Bishops"), equal_to(2))
+    assert_that(context.game.board_state.number_of_pieces("Kings"), equal_to(1))
+    assert_that(context.game.board_state.number_of_pieces("Queens"), equal_to(1))
 
-
-@then(u'the score is set to zero')
+@then('the score is set to zero')
 def step_impl(context):
-    assert(context.chess.score == 0)
+    assert_that(context.game.score, equal_to(0))
 
-@given(u'that you have a set of pieces')
+@given('that you have a set of pieces')
 def step_impl(context):
-    context.chess = Chess()
-    set_of_pieces = PiecesSet()
-    assert(len(set_of_pieces.full_set()) == 32)
-    assert(len(set_of_pieces.full_set("Pawns")) == 16)
-    assert(len(set_of_pieces.full_set("Pawns", "White")) == 8)
+    context.pieces = PiecesSet()
 
-@when(u'the game is about to start')
+@when('the game is about to start')
 def step_impl(context):
-    raise NotImplementedError(u'STEP: When the game is about to start')
+    context.pieces.setup_pieces()
 
-@then(u'all of the pieces are put in their correct places')
+@then('all of the pieces are put in their correct places')
 def step_impl(context):
-    raise NotImplementedError(u'STEP: Then all of the pieces are put in their correct places')
+    assert_that(context.pieces.starting_locations(color="White", piece="Pawns"), equal_to(["a2","b2","c2","g2","e2","f2","g2","h2"]))
+    assert_that(context.pieces.starting_locations(color="White", piece="Rooks"), equal_to(["a1","h1"]))
+    assert_that(context.pieces.starting_locations(color="White", piece="Knights"), equal_to(["b1","g1"]))
+    assert_that(context.pieces.starting_locations(color="White", piece="Bishops"), equal_to(["c1","f1"]))
+    assert_that(context.pieces.starting_locations(color="White", piece="Kings"), equal_to(["d1"]))
+    assert_that(context.pieces.starting_locations(color="White", piece="Queens"), equal_to(["e1"]))
+    assert_that(context.pieces.starting_locations(color="Black", piece="Pawns"), equal_to(["a7","b7","c7","g7","e7","f7","g7","h7"]))
+    assert_that(context.pieces.starting_locations(color="Black", piece="Rooks"), equal_to(["a8","h8"]))
+    assert_that(context.pieces.starting_locations(color="Black", piece="Knights"), equal_to(["b8","g8"]))
+    assert_that(context.pieces.starting_locations(color="Black", piece="Bishops"), equal_to(["c8","f8"]))
+    assert_that(context.pieces.starting_locations(color="Black", piece="Kings"), equal_to(["d8"]))
+    assert_that(context.pieces.starting_locations(color="Black", piece="Queens"), equal_to(["e8"]))
 
-@then(u'none of the pieces are in wrong places')
+@then('none of the pieces are in wrong places')
 def step_impl(context):
-    raise NotImplementedError(u'STEP: Then none of the pieces are in wrong places')
+    assert_that(context.pieces.starting_locations(color="White", piece="Pawns"), is_not(["a1","b1","c1","g1","e1","f1","g1","h1"]))
+    assert_that(context.pieces.starting_locations(color="White", piece="Rooks"), is_not(["a2","h2"]))
+    assert_that(context.pieces.starting_locations(color="White", piece="Knights"), is_not(["b2","g2"]))
+    assert_that(context.pieces.starting_locations(color="White", piece="Bishops"), is_not(["c2","f2"]))
+    assert_that(context.pieces.starting_locations(color="White", piece="Kings"), is_not(["d2"]))
+    assert_that(context.pieces.starting_locations(color="White", piece="Queens"), is_not(["e2"]))
+    assert_that(context.pieces.starting_locations(color="Black", piece="Pawns"), is_not(["a8","b8","c8","g8","e8","f8","g8","h8"]))
+    assert_that(context.pieces.starting_locations(color="Black", piece="Rooks"), is_not(["a7","h7"]))
+    assert_that(context.pieces.starting_locations(color="Black", piece="Knights"), is_not(["b7","g7"]))
+    assert_that(context.pieces.starting_locations(color="Black", piece="Bishops"), is_not(["c7","f7"]))
+    assert_that(context.pieces.starting_locations(color="Black", piece="Kings"), is_not(["d7"]))
+    assert_that(context.pieces.starting_locations(color="Black", piece="Queens"), is_not(["e7"]))
 
-@given(u'a piece is on the board')
+@given('a piece is on the board')
 def step_impl(context):
-    context.chess = Chess()
-    piece = context.chess.piece("b", 8)
-    assert(piece["color"] == "Black")
-    assert(piece["type"] == "Pawn")
+    context.game = Chess()
+    context.game.start_new_game()
+    context.game.board_state.set_piece("a2", "Pawn")
 
-@when(u'you move it to a valid position')
+@when('you move it to a valid position')
 def step_impl(context):
-    raise NotImplementedError(u'STEP: you move it to a valid position')
+    context.game.board_state.move_piece("a2", "a3")
 
-@then(u'it changes positions')
+@then('it changes position')
 def step_impl(context):
-    raise NotImplementedError(u'STEP: Then it changes positions')
+    assert_that(context.game.board_state.get_piece("a3"), equal_to("Pawn"))
 
-@then(u'your turn ends')
+@then('your turn ends')
 def step_impl(context):
-    raise NotImplementedError(u'STEP: Then your turn ends')
+    assert_that(context.game.turn, equal_to("Black"))
 
-@given(u'two pieces')
+@given('two pieces')
 def step_impl(context):
-    raise NotImplementedError(u'STEP: Given two pieces')
+    context.game = Chess()
+    context.game.start_new_game()
+    context.game.board_state.set_piece("a2", "Pawn")
+    context.game.board_state.set_piece("a3", "Pawn")
 
-@when(u'one piece takes another')
+@when('one piece takes another')
 def step_impl(context):
-    raise NotImplementedError(u'STEP: When one piece takes another')
+    context.game.board_state.move_piece("a2", "a3")
 
-@then(u'the defender\'s space is occupied by the attacker')
+@then('the defender\'s space is occupied by the attacker')
 def step_impl(context):
-    raise NotImplementedError(u'STEP: Then the defender\'s space is occupied by the attacker')
+    assert_that(context.game.board_state.get_piece("a3"), equal_to("Pawn"))
 
-@then(u'the defending piece is removed from play')
+@then('the defending piece is removed from play')
 def step_impl(context):
-    raise NotImplementedError(u'STEP: Then the defending piece is removed from play')
+    assert_that(context.game.board_state.get_piece("a2"), equal_to(None))
+
+@then('it changes positions')
+def step_impl(context):
+    assert_that(context.game.board_state.get_piece("a3"), equal_to("Pawn"))
