@@ -1,6 +1,6 @@
 #  -*- coding: utf-8 -*-
 from behave import *
-import chess
+from chess import Chess, BoardState, PiecesSet, Rules
 
 # 8 ║♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜
 # 7 ║♟ ♟ ♟ ♟ ♟ ♟ ♟ ♟
@@ -15,7 +15,7 @@ import chess
 
 @given(u'you are starting a game of chess')
 def step_impl(context):
-    context.chess = chess.Chess()
+    context.chess = Chess()
 
 @when(u'you start a game')
 def step_impl(context):
@@ -36,8 +36,9 @@ def step_impl(context):
 def step_impl(context):
     rules = context.chess.Rules
     expected_pieces = [8, 2, 2, 2, 1, 1]
-    for piece in rules.list_of_pieces
-    for number in expected_pieces:
+    for piece in rules.list_of_pieces:
+        for number in expected_pieces:
+            pass
 
 
 @then(u'the score is set to zero')
@@ -46,8 +47,8 @@ def step_impl(context):
 
 @given(u'that you have a set of pieces')
 def step_impl(context):
-    context.chess = chess.Chess()
-    set_of_pieces = context.chess.Pieces_Set()
+    context.chess = Chess()
+    set_of_pieces = PiecesSet()
     assert(len(set_of_pieces.full_set()) == 32)
     assert(len(set_of_pieces.full_set("Pawns")) == 16)
     assert(len(set_of_pieces.full_set("Pawns", "White")) == 8)
@@ -66,7 +67,7 @@ def step_impl(context):
 
 @given(u'a piece is on the board')
 def step_impl(context):
-    context.chess = chess.Chess()
+    context.chess = Chess()
     piece = context.chess.piece("b", 8)
     assert(piece["color"] == "Black")
     assert(piece["type"] == "Pawn")
